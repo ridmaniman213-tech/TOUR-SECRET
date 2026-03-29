@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login | ImanzLY Portal</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        body {
+            background-color: #0f172a;
+            display: flex; justify-content: center; align-items: center;
+            height: 100vh; margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            flex-direction: column;
+            overflow: hidden;
+            color: white;
+        }
+
+        #number-grid {
+            display: grid; grid-template-columns: repeat(10, 1fr);
+            gap: 10px; max-width: 500px; margin-bottom: 20px;
+            transition: 0.3s;
+        }
+
+        .block {
+            width: 35px; height: 35px; border: 1px solid #1e293b;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 10px; cursor: pointer; color: #334155; transition: 0.3s;
+            user-select: none;
+        }
+        .block:hover { color: #38bdf8; border-color: #38bdf8; }
+
+        #login-section { display: none; opacity: 0; }
+        
+        .login-card {
+            background: #1e293b; padding: 2.5rem; border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            width: 100%; max-width: 400px;
+            border: 1px solid #334155; text-align: center;
+        }
+
+        .login-card h2 { color: #38bdf8; margin-bottom: 0.5rem; }
+        .login-card p { color: #94a3b8; font-size: 0.9rem; margin-bottom: 2rem; }
+        
+        .input-group { text-align: left; margin-bottom: 1.5rem; }
+        .input-group label { display: block; color: #cbd5e1; margin-bottom: 0.5rem; font-size: 0.85rem; }
+        .input-group input { 
+            width: 100%; padding: 0.75rem; border-radius: 6px; border: 1px solid #475569;
+            background: #0f172a; color: white; box-sizing: border-box; outline: none;
+        }
+
+        .login-btn {
+            width: 100%; padding: 0.75rem; border: none; border-radius: 6px;
+            background: #38bdf8; color: #0f172a; font-weight: bold; cursor: pointer;
+            transition: 0.2s;
+        }
+        .login-btn:hover { background: #7dd3fc; }
+
+        #timer-msg { color: #f87171; font-weight: bold; margin-top: 10px; font-size: 14px; text-align: center; }
+        .locked-grid { pointer-events: none; opacity: 0.2; }
+    </style>
+</head>
+<body>
+
+    <div id="number-grid"></div>
+
+    <div id="login-section">
+        <div class="login-card">
+            <h2>Admin Access</h2>
+            <p>Identiti Disahkan. Sila masukkan kelayakan.</p>
+            <form id="adminLoginForm">
+                <div class="input-group">
+                    <label>Gmail Admin</label>
+                    <input type="email" id="email" placeholder="admin@imanzly.com" required>
+                </div>
+                <div class="input-group">
+                    <label>Password Verification</label>
+                    <input type="password" id="password" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="login-btn">MASUK DASHBOARD</button>
+            </form>
+            <div id="message" style="margin-top:10px; font-size: 13px;"></div>
+        </div>
+    </div>
+
+    <p id="timer-msg"></p>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        // Firebase Config kau
+        const firebaseConfig = {
+            apiKey: "AIzaSyCz5cj9VBeiunHIvxSSZNKXLr9MDZcnut0",
+            authDomain: "detect-system-v3.firebaseapp.com",
+            databaseURL: "https://detect-system-v3-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "detect-system-v3",
+            storageBucket: "detect-system-v3.firebasestorage.app",
+            messagingSenderId: "18524075269",
+            appId: "1:18524075269:web:dae72d517d9bc5cc89736c"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let dbSecretCode = 12; // Default
+        const grid = document.getElementById('number-grid');
+        const timerMsg = document.getElementById('timer-msg');
+
+        // 1. Sync Secret Pin dari Database
+        async function syncSettings() {
+            try {
+                const snapshot = await get(ref(db));
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    dbSecretCode = data.secret_pin || 12;
+                    console.log("System Synced. Target Pin:", dbSecretCode);
+                }
+            } catch (e) { console.error("Sync Error", e); }
+        }
+        syncSettings();
+
+        // 2. Bina Grid 1-100
+        for (let i = 1; i <= 100; i++) {
+            const block = document.createElement('div');
+            block.className = 'block';
+            block.innerText = i;
+            block.onclick = () => {
+                if (i === parseInt(dbSecretCode)) {
+                    revealLogin();
+                } else {
+                    handleFail();
+                }
+            };
+            grid.appendChild(block);
+        }
+
+        // 3. Logic Login Firebase
+        const loginForm = document.getElementById('adminLoginForm');
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const emailIn = document.getElementById('email').value.trim();
+            const passIn = document.getElementById('password').value.trim();
+            const msg = document.getElementById('message');
+
+            msg.innerHTML = '<span style="color: #38bdf8;">Menghubungi Firebase...</span>';
+
+            try {
+                const snapshot = await get(ref(db));
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    // Bandingkan dengan data 'user' dan 'pass' kat root database kau
+                    if (emailIn === data.user && passIn === data.pass) {
+                        sessionStorage.setItem('admin_token', 'AUTHORIZED_IMANZ_2026');
+                        msg.innerHTML = '<span style="color: #4ade80;">AKSES DITERIMA!</span>';
+                        setTimeout(() => { window.location.href = "dashboard.html"; }, 1000);
+                    } else {
+                        msg.innerHTML = '<span style="color: #f87171;">RALAT: Credential Salah!</span>';
+                    }
+                }
+            } catch (err) {
+                msg.innerHTML = '<span style="color: #f87171;">RALAT: Sila semak Rules Firebase!</span>';
+            }
+        });
+
+        // 4. Security Logic (Ban System)
+        function checkInitialLock() {
+            const lockUntil = localStorage.getItem('lockUntil');
+            if (lockUntil && Date.now() < lockUntil) {
+                startBan(Math.ceil((lockUntil - Date.now()) / 1000));
+            }
+        }
+
+        function handleFail() {
+            let count = (parseInt(localStorage.getItem('failCount')) || 0) + 1;
+            localStorage.setItem('failCount', count);
+            if (count >= 3) {
+                const wait = (count - 2) * 30;
+                localStorage.setItem('lockUntil', Date.now() + (wait * 1000));
+                startBan(wait);
+            }
+        }
+
+        function startBan(s) {
+            grid.classList.add('locked-grid');
+            let c = s;
+            const itv = setInterval(() => {
+                timerMsg.innerText = `SISTEM TERKUNCI! CUBA LAGI: ${c}s`;
+                if (c-- <= 0) {
+                    clearInterval(itv);
+                    timerMsg.innerText = "";
+                    grid.classList.remove('locked-grid');
+                    localStorage.removeItem('lockUntil');
+                    localStorage.setItem('failCount', 0);
+                }
+            }, 1000);
+        }
+
+        function revealLogin() {
+            gsap.to("#number-grid", { opacity: 0, scale: 0.8, duration: 0.4, onComplete: () => {
+                grid.style.display = "none";
+                const sec = document.getElementById('login-section');
+                sec.style.display = "block";
+                gsap.to(sec, { opacity: 1, y: -20, duration: 0.6 });
+            }});
+        }
+
+        checkInitialLock();
+    </script>
+</body>
+</html>
