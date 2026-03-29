@@ -3,39 +3,126 @@
   --bg: #000;
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'SF Pro Display', sans-serif; cursor: auto; }
+/* RESET & BASIC */
+* { 
+  margin: 0; 
+  padding: 0; 
+  box-sizing: border-box; 
+  font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif; 
+  cursor: auto; 
+}
 
-body { background: var(--bg); color: #fff; overflow-x: hidden; }
+body { 
+  background: var(--bg); 
+  color: #fff; 
+  overflow-x: hidden; 
+  width: 100%;
+}
 
-/* DYNAMIC NAV (IPHONE STYLE) */
+/* DYNAMIC NAV (IPHONE STYLE) - FIXED FOR MOBILE */
 nav {
-  position: fixed; top: 30px; left: 50%; transform: translateX(-50%);
-  background: rgba(20, 20, 20, 0.6); backdrop-filter: blur(40px);
-  padding: 15px 40px; border-radius: 100px; z-index: 1000;
-  display: flex; gap: 40px; border: 1px solid rgba(255,255,255,0.1);
+  position: fixed; 
+  top: 20px; 
+  left: 50%; 
+  transform: translateX(-50%);
+  background: rgba(20, 20, 20, 0.7); 
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 10px 25px; 
+  border-radius: 100px; 
+  z-index: 1000;
+  display: flex; 
+  gap: 20px; /* Kurangkan gap supaya muat skrin phone */
+  border: 1px solid rgba(255,255,255,0.1);
+  width: max-content;
+  max-width: 90%; /* Supaya tak terkeluar skrin phone */
+  justify-content: center;
 }
 
 nav a {
-  color: #888; text-decoration: none; font-size: 11px; font-weight: 900;
-  letter-spacing: 3px; transition: 0.5s; position: relative;
+  color: #888; 
+  text-decoration: none; 
+  font-size: 10px; /* Kecilkan sikit font nav */
+  font-weight: 900;
+  letter-spacing: 1px; /* Kurangkan spacing supaya tak panjang sangat */
+  transition: 0.5s; 
+  position: relative;
+  white-space: nowrap;
 }
 
-nav a.active { color: var(--accent); text-shadow: 0 0 10px var(--accent); }
+nav a.active { 
+  color: var(--accent); 
+  text-shadow: 0 0 10px var(--accent); 
+}
 
 /* LIVE WALLPAPER CANVAS */
 #canvas-webgl {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  z-index: -1; pointer-events: auto; /* Biar user boleh interact */
+  position: fixed; 
+  top: 0; 
+  left: 0; 
+  width: 100%; 
+  height: 100%;
+  z-index: -1; 
+  pointer-events: auto;
 }
 
 /* SECTION TRANSITIONS */
-section { height: 100vh; display: flex; align-items: center; justify-content: center; }
+section { 
+  min-height: 100vh; 
+  display: flex; 
+  flex-direction: column;
+  align-items: center; 
+  justify-content: center; 
+  padding: 20px;
+}
 
-h1 { font-size: 10vw; font-weight: 900; letter-spacing: -10px; opacity: 0; }
+/* TITLE H1 - FIXED OVERSIZE */
+h1 { 
+  font-size: clamp(2.5rem, 8vw, 8rem); /* Auto saiz: kecik kat phone, besar kat PC */
+  font-weight: 900; 
+  letter-spacing: -2px; /* Kurangkan negatif spacing supaya huruf tak bertindih */
+  text-align: center;
+  line-height: 1;
+  text-transform: uppercase;
+  /* Kalau kau guna animation opacity 0 kat JS, biarkan. Kalau tak, tukar jadi 1 */
+  opacity: 1; 
+}
 
+/* LOGIN BOX - FIXED FOR MOBILE */
 .login-glass {
-  background: rgba(255, 255, 255, 0.02); padding: 80px; border-radius: 50px;
-  backdrop-filter: blur(60px); border: 1px solid rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.02); 
+  padding: 40px 20px; /* Kecilkan padding untuk mobile */
+  border-radius: 30px;
+  backdrop-filter: blur(60px); 
+  -webkit-backdrop-filter: blur(60px);
+  border: 1px solid rgba(255,255,255,0.05);
   box-shadow: 0 25px 100px rgba(0,0,0,0.8);
-  transform: translateY(100px); opacity: 0;
+  width: 100%;
+  max-width: 400px;
+  transform: translateY(0); /* Reset transform supaya nampak */
+  opacity: 1; /* Reset opacity supaya nampak */
+  text-align: center;
+}
+
+/* KHAS UNTUK SKRIN PHONE (MEDIA QUERY) */
+@media (max-width: 600px) {
+  nav {
+    top: 15px;
+    padding: 8px 15px;
+    gap: 12px;
+  }
+  
+  nav a {
+    font-size: 9px;
+    letter-spacing: 0.5px;
+  }
+
+  h1 {
+    letter-spacing: -1px;
+    margin-bottom: 20px;
+  }
+  
+  .login-glass {
+    padding: 30px 15px;
+  }
 }
