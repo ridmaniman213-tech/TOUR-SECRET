@@ -1,224 +1,337 @@
-<!DOCTYPE html>
-<html lang="ms">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login | ImanzLY Portal</title>
+    <title>DETECT SYSTEM | IMANZ DEV</title>
+    
+    <link rel="stylesheet" href="public/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.halo.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    
+    </head>
     <style>
-        body {
-            background-color: #0f172a;
-            display: flex; justify-content: center; align-items: center;
-            min-height: 100vh; margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            flex-direction: column;
-            color: white;
-            padding: 20px;
+        /* CSS ASAL KAU (TIDAK DIUSIK) */
+        #login-card {
+            opacity: 1 !important;
+            transform: none !important;
+            visibility: visible !important;
+            position: relative;
+            overflow: hidden;
+            max-width: 450px;
+            margin: 0 auto;
         }
 
-        #number-grid {
-            display: grid; 
-            /* Kat handphone (default) buat 5 column */
-            grid-template-columns: repeat(5, 1fr);
-            gap: 10px; 
-            width: 100%;
-            max-width: 450px; 
+        #peserta-dashboard {
+            display: none; 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100%; height: 100vh; 
+            background: #060b14; 
+            z-index: 10000; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            opacity: 0;
+        }
+
+        .dash-card {
+            text-align: center; 
+            border: 1px solid rgba(0, 242, 255, 0.2); 
+            padding: 60px 40px; 
+            border-radius: 24px; 
+            background: rgba(255,255,255,0.01); 
+            backdrop-filter: blur(20px);
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+        }
+
+        @keyframes scanLine {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+        
+        @keyframes floatHacker {
+            0%, 100% { transform: translateY(0) scale(1); filter: drop-shadow(0 0 10px #00f2ff); }
+            50% { transform: translateY(-20px) scale(1.1); filter: drop-shadow(0 0 30px #00f2ff); }
+        }
+
+        .hacker-logo {
+            font-size: 5rem;
+            color: #00f2ff;
             margin-bottom: 20px;
-            transition: 0.3s;
-            max-height: 60vh;
-            overflow-y: auto;
-            padding: 10px;
+            animation: floatHacker 4s ease-in-out infinite;
+            opacity: 0.8;
         }
 
-        /* Kat laptop/PC buat 10 column balik */
-        @media (min-width: 768px) {
-            #number-grid {
-                grid-template-columns: repeat(10, 1fr);
-            }
+        .glitch-text {
+            color: #ff4444;
+            font-weight: 900;
+            letter-spacing: 12px;
+            text-transform: uppercase;
+            font-size: 1.2rem;
+            margin-top: 10px;
         }
 
-        .block {
-            aspect-ratio: 1/1; /* Biar petak tepat */
-            border: 1px solid #1e293b;
-            display: flex; justify-content: center; align-items: center;
-            font-size: 12px; cursor: pointer; color: #64748b; transition: 0.3s;
-            user-select: none;
-            background: rgba(30, 41, 59, 0.5);
-            border-radius: 8px;
-        }
-        .block:hover { color: #38bdf8; border-color: #38bdf8; background: #1e293b; }
-
-        #login-section { display: none; opacity: 0; width: 100%; max-width: 400px; }
+        /* --- TAMBAHAN SCRIPT (ANIMASI ZOOM & HACKER HOME) --- */
+        section { display: none; min-height: 100vh; padding-top: 100px; }
+        #home { display: block; } 
         
-        .login-card {
-            background: #1e293b; padding: 2rem; border-radius: 20px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            width: 100%; 
-            border: 1px solid #334155; text-align: center;
+        /* Animasi Zoom Out Page */
+        .zoom-effect {
+            animation: zoomOut 0.6s ease-out forwards;
+        }
+        @keyframes zoomOut {
+            from { transform: scale(1.2); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
         }
 
-        @media (max-width: 480px) {
-            .login-card { padding: 1.5rem; }
-            .login-card h2 { font-size: 1.5rem; }
+        /* Hacker Style Home (Ikut Gambar Behance) */
+        .matrix-bg {
+            font-family: 'Courier New', monospace;
+            color: #00f2ff;
+            text-shadow: 0 0 8px #00f2ff;
+            text-transform: uppercase;
+        }
+        .blink-text { animation: blink 1s infinite; }
+        @keyframes blink { 0% { opacity: 0; } 50% { opacity: 1; } 100% { opacity: 0; } }
+
+        .dev-popup-box {
+            background: rgba(0, 242, 255, 0.1);
+            border: 1px solid #00f2ff;
+            padding: 15px 30px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-top: 30px;
+            animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .nav-item.active-nav {
+            color: #00f2ff !important;
+            text-shadow: 0 0 10px #00f2ff;
         }
 
-        .login-card h2 { color: #38bdf8; margin-bottom: 0.5rem; font-weight: 800; }
-        .login-card p { color: #94a3b8; font-size: 0.8rem; margin-bottom: 2rem; }
-        
-        .input-group { text-align: left; margin-bottom: 1.2rem; }
-        .input-group label { display: block; color: #cbd5e1; margin-bottom: 0.5rem; font-size: 0.8rem; font-weight: 600; }
-        .input-group input { 
-            width: 100%; padding: 0.8rem; border-radius: 10px; border: 1px solid #475569;
-            background: #0f172a; color: white; box-sizing: border-box; outline: none;
-            font-size: 16px; /* Elak auto-zoom kat iPhone */
+        .contact-box, .about-box {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(0, 242, 255, 0.2);
+            padding: 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            max-width: 600px;
+            margin: 20px auto;
+            text-align: center;
+            color: white;
         }
 
-        .login-btn {
-            width: 100%; padding: 0.8rem; border: none; border-radius: 10px;
-            background: #38bdf8; color: #0f172a; font-weight: 800; cursor: pointer;
-            transition: 0.2s; text-transform: uppercase; letter-spacing: 1px;
+        .btn-chat {
+            background: #25d366; color: white; padding: 12px 25px; border-radius: 10px; text-decoration: none; display: inline-block; margin-top: 20px; font-weight: bold;
         }
-        .login-btn:hover { background: #7dd3fc; transform: translateY(-2px); }
-
-        #timer-msg { color: #f87171; font-weight: bold; margin-top: 10px; font-size: 14px; text-align: center; }
-        .locked-grid { pointer-events: none; opacity: 0.2; }
     </style>
 </head>
 <body>
 
-    <div id="number-grid"></div>
-
-    <div id="login-section">
-        <div class="login-card">
-            <h2>Admin Access</h2>
-            <p>Sila masukkan kelayakan verifikasi.</p>
-            <form id="adminLoginForm">
-                <div class="input-group">
-                    <label>Gmail Admin</label>
-                    <input type="email" id="email" placeholder="admin@imanzly.com" required>
-                </div>
-                <div class="input-group">
-                    <label>Password Verification</label>
-                    <input type="password" id="password" placeholder="••••••••" required>
-                </div>
-                <button type="submit" class="login-btn">MASUK DASHBOARD</button>
-            </form>
-            <div id="message" style="margin-top:15px; font-size: 13px; font-weight: bold;"></div>
+    <div id="peserta-dashboard">
+        <div class="dash-card">
+            <i class="fas fa-user-shield" style="font-size: 3.5rem; color: #00aeff; margin-bottom: 20px;"></i>
+            <h1 id="display-name" style="color: #00d5ff; font-size: 2.5rem; font-weight: 900; text-transform: uppercase; margin: 10px 0;">PESERTA</h1>
+            <button id="btn-share" onclick="startScreenShareFromUI()" style="width: 100%; margin-top: 40px; padding: 18px; border-radius: 12px; border: 1px solid #00d5ff; background: transparent; color: #00bbff; font-weight: 900; cursor: pointer;">INITIALIZE MONITORING</button>
         </div>
     </div>
 
-    <p id="timer-msg"></p>
+    <div id="vanta-bg" style="width: 100%; height: 100vh; position: fixed; z-index: -1;"></div>
+
+    <nav id="navbar">
+        <a href="#home" class="nav-item active active-nav" onclick="showPage('home')">HOME</a>
+        <a href="#login" class="nav-item" onclick="showPage('login')">LOGIN</a>
+        <a href="#about" class="nav-item" onclick="showPage('about')">ABOUT</a>
+        <a href="#contact" class="nav-item" onclick="showPage('contact')">CONTACT</a>
+    </nav>
+
+    <section id="home">
+        <div class="content-wrapper" style="text-align: center;">
+            <p class="matrix-bg blink-text" style="font-size: 0.9rem; letter-spacing: 5px;">[ SYSTEM BREACH SIMULATION ACTIVE ]</p>
+            
+            <h1 style="font-size: 5rem; font-weight: 900; color: #fff; letter-spacing: 15px; margin: 10px 0; text-shadow: 0 0 20px rgba(0, 242, 255, 0.5);">DETECT SYSTEM</h1>
+            
+            <div style="font-size: 1.2rem; color: #00f2ff; margin-bottom: 20px;">
+                <i class="fas fa-ghost"></i> &nbsp; <i class="fas fa-mask"></i> &nbsp; <i class="fas fa-user-secret"></i>
+            </div>
+
+            <div class="dev-popup-box">
+                <span class="matrix-bg" style="color: #fff;">AUTHORIZED BY: </span>
+                <span style="color: #00f2ff; font-weight: 900; letter-spacing: 2px;">IMAN DEVELOPER</span>
+            </div>
+
+            <div class="matrix-bg" style="margin-top: 40px; font-size: 0.7rem; opacity: 0.6; line-height: 2;">
+                > INITIALIZING ROOT EXPLOIT... DONE <br>
+                > DECRYPTING DATABASE... 100% <br>
+                > BYPASSING FIREWALL... GRANTED
+            </div>
+        </div>
+    </section>
+
+    <section id="login">
+        <div class="login-glass" id="login-card">
+            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: #00ccff; opacity: 0.4; animation: scanLine 3s linear infinite;"></div>
+            <div style="text-align: center; margin-bottom: 35px;">
+                <div style="width: 70px; height: 70px; border: 1px solid #00e1ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                    <i class="fas fa-fingerprint" style="font-size: 2rem; color: #00bfff;"></i>
+                </div>
+                <h2 style="font-size: 1.8rem; font-weight: 200; letter-spacing: 5px;">ACCESS GATEWAY</h2>
+            </div>
+            <div class="input-group" style="display: flex; flex-direction: column; gap: 15px;">
+                <input type="text" placeholder="IDENTITY ID" id="user-input" style="width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; color: #fff; outline: none;">
+                <input type="password" placeholder="SECRET KEY" id="pass-input" style="width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; color: #fff; outline: none;">
+            </div>
+            <button class="btn-connect" onclick="initializeGateway()" style="width: 100%; margin-top: 25px; padding: 15px; border-radius: 10px; border: none; background: #fff; color: #000; font-weight: 900; letter-spacing: 2px; cursor: pointer;">INITIALIZE GATEWAY</button>
+        </div>
+    </section>
+
+    <section id="about">
+        <div class="about-box">
+            <h2 style="color:#00f2ff; letter-spacing: 5px;">ABOUT DETECT SYSTEM</h2>
+            <p style="margin-top:20px;">Sistem pemantauan integriti real-time untuk memastikan keadilan dalam setiap sesi digital.</p>
+        </div>
+    </section>
+
+    <section id="contact">
+        <div class="contact-box">
+            <h2 style="color:#00f2ff; letter-spacing: 5px;">HUBUNGI DEV</h2>
+            <p style="font-weight: bold; margin-top: 15px;">No. Tel: +60 11-2683 0787</p>
+            <a href="https://wa.me/601126830787?text=Assalamualaikum%20Iman" class="btn-chat">
+                <i class="fab fa-whatsapp"></i> CHAT LANGSUNG
+            </a>
+        </div>
+    </section>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, get, child, update, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCz5cj9VBeiunHIvxSSZNKXLr9MDZcnut0",
-            authDomain: "detect-system-v3.firebaseapp.com",
-            databaseURL: "https://detect-system-v3-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "detect-system-v3",
-            storageBucket: "detect-system-v3.firebasestorage.app",
-            messagingSenderId: "18524075269",
-            appId: "1:18524075269:web:dae72d517d9bc5cc89736c"
-        };
+    // 1. CONFIG & INIT
+    const firebaseConfig = {
+        apiKey: "AIzaSyCz5cj9VBeiunHIvxSSZNKXLr9MDZcnut0",
+        authDomain: "detect-system-v3.firebaseapp.com",
+        databaseURL: "https://detect-system-v3-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "detect-system-v3",
+        storageBucket: "detect-system-v3.firebasestorage.app",
+        messagingSenderId: "18524075269",
+        appId: "1:18524075269:web:dae72d517d9bc5cc89736c"
+    };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    let currentActiveUser = null;
+    let peer = null;
+    let localStream = null;
 
-        let dbSecretCode = 12;
-        const grid = document.getElementById('number-grid');
-        const timerMsg = document.getElementById('timer-msg');
-
-        async function syncSettings() {
-            try {
-                const snapshot = await get(ref(db));
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
-                    dbSecretCode = data.secret_pin || 12;
-                }
-            } catch (e) { console.error("Sync Error", e); }
+    // --- RE-INIT VANTA INSIDE MODULE ---
+    function initVanta() {
+        if (window.VANTA) {
+            window.VANTA.HALO({
+                el: "#vanta-bg",
+                mouseControls: true,
+                touchControls: true,
+                baseColor: 0x0,
+                backgroundColor: 0x0,
+                amplitudeFactor: 1.5,
+                size: 1.5
+            });
         }
-        syncSettings();
+    }
+    initVanta(); // Panggil terus bila page load
 
-        for (let i = 1; i <= 100; i++) {
-            const block = document.createElement('div');
-            block.className = 'block';
-            block.innerText = i;
-            block.onclick = () => {
-                if (i === parseInt(dbSecretCode)) {
-                    revealLogin();
-                } else {
-                    handleFail();
+    // 2. GATEWAY LOGIN
+    window.initializeGateway = async function() {
+        const userId = document.getElementById('user-input').value.trim();
+        const userPass = document.getElementById('pass-input').value.trim();
+        
+        if (!userId || !userPass) return alert("⚠️ Isi ID & Key!");
+        
+        const hashedInput = CryptoJS.SHA256(userPass).toString();
+        
+        try {
+            const snapshot = await get(child(ref(db), `participants/${userId}`));
+            if (snapshot.exists()) {
+                const userData = snapshot.val();
+                if (userData.pass === hashedInput) {
+                    currentActiveUser = userId;
+                    document.getElementById('display-name').innerText = userData.name;
+                    const dash = document.getElementById('peserta-dashboard');
+                    dash.style.display = "flex";
+                    gsap.to(dash, { opacity: 1, duration: 0.8 });
+                } else { alert("❌ Key Salah!"); }
+            } else { alert("❌ ID Tidak Wujud!"); }
+        } catch (e) { alert("⚠️ Database Error!"); }
+    }
+
+    // 3. START MONITORING (SHARE SCREEN)
+    window.startScreenShareFromUI = async function() {
+        const btn = document.getElementById('btn-share');
+        
+        try {
+            // Request screen capture
+            localStream = await navigator.mediaDevices.getDisplayMedia({
+                video: { cursor: "always" },
+                audio: false
+            });
+
+            // Init PeerJS guna ID user
+            peer = new Peer(currentActiveUser);
+
+            peer.on('open', (id) => {
+                const userRef = ref(db, `participants/${currentActiveUser}`);
+                update(userRef, { status: "ONLINE" });
+
+                peer.on('call', (call) => {
+                    call.answer(localStream);
+                });
+
+                onDisconnect(userRef).update({ status: "OFFLINE" });
+
+                btn.innerText = "MONITORING ACTIVE";
+                btn.style.borderColor = "#22c55e";
+                btn.style.color = "#22c55e";
+                btn.disabled = true;
+                
+                console.log("System Authorized: " + id);
+            });
+
+            localStream.getVideoTracks()[0].onended = function () {
+                if(currentActiveUser) {
+                    update(ref(db, `participants/${currentActiveUser}`), { status: "OFFLINE" });
                 }
+                location.reload();
             };
-            grid.appendChild(block);
+
+        } catch (err) {
+            alert("⚠️ Error: Pastikan anda menggunakan Laptop/PC untuk Share Screen!");
         }
+    }
 
-        const loginForm = document.getElementById('adminLoginForm');
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const emailIn = document.getElementById('email').value.trim();
-            const passIn = document.getElementById('password').value.trim();
-            const msg = document.getElementById('message');
-
-            msg.innerHTML = '<span style="color: #38bdf8;">Establishing Link...</span>';
-
-            try {
-                const snapshot = await get(ref(db));
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
-                    if (emailIn === data.user && passIn === data.pass) {
-                        sessionStorage.setItem('admin_token', 'AUTHORIZED_IMANZ_2026');
-                        msg.innerHTML = '<span style="color: #4ade80;">ACCESS GRANTED</span>';
-                        setTimeout(() => { window.location.href = "dashboard.html"; }, 1000);
-                    } else {
-                        msg.innerHTML = '<span style="color: #f87171;">ACCESS DENIED: Wrong Credentials</span>';
-                    }
-                }
-            } catch (err) {
-                msg.innerHTML = '<span style="color: #f87171;">SYSTEM ERROR: Check Database</span>';
-            }
+    // Export function ke window supaya HTML onclick boleh baca
+    window.showPage = function(pageId) {
+        document.querySelectorAll('section').forEach(sec => {
+            sec.style.display = 'none';
+            sec.classList.remove('zoom-effect');
         });
-
-        function handleFail() {
-            let count = (parseInt(localStorage.getItem('failCount')) || 0) + 1;
-            localStorage.setItem('failCount', count);
-            if (count >= 3) {
-                const wait = (count - 2) * 30;
-                localStorage.setItem('lockUntil', Date.now() + (wait * 1000));
-                startBan(wait);
-            }
+        const activePage = document.getElementById(pageId);
+        if(activePage) {
+            activePage.style.display = 'block';
+            activePage.classList.add('zoom-effect');
         }
 
-        function startBan(s) {
-            grid.classList.add('locked-grid');
-            let c = s;
-            const itv = setInterval(() => {
-                timerMsg.innerText = `SISTEM TERKUNCI! CUBA LAGI: ${c}s`;
-                if (c-- <= 0) {
-                    clearInterval(itv);
-                    timerMsg.innerText = "";
-                    grid.classList.remove('locked-grid');
-                    localStorage.removeItem('lockUntil');
-                    localStorage.setItem('failCount', 0);
-                }
-            }, 1000);
+        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active-nav'));
+        if(event && event.target) {
+            event.target.classList.add('active-nav');
         }
-
-        function revealLogin() {
-            gsap.to("#number-grid", { opacity: 0, scale: 0.8, duration: 0.4, onComplete: () => {
-                grid.style.display = "none";
-                const sec = document.getElementById('login-section');
-                sec.style.display = "block";
-                gsap.to(sec, { opacity: 1, y: 0, duration: 0.6 });
-            }});
-        }
-
-        const lockUntil = localStorage.getItem('lockUntil');
-        if (lockUntil && Date.now() < lockUntil) {
-            startBan(Math.ceil((lockUntil - Date.now()) / 1000));
-        }
-    </script>
+    }
+</script>
 </body>
 </html>
