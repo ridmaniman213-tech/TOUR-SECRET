@@ -12,130 +12,129 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    
-    </head>
-    <style>
-        /* CSS ASAL KAU (TIDAK DIUSIK) */
-        #login-card {
-            opacity: 1 !important;
-            transform: none !important;
-            visibility: visible !important;
-            position: relative;
-            overflow: hidden;
-            max-width: 450px;
-            margin: 0 auto;
-        }
-
-        #peserta-dashboard {
-            display: none; 
-            position: fixed; 
-            top: 0; left: 0; 
-            width: 100%; height: 100vh; 
-            background: #060b14; 
-            z-index: 10000; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            opacity: 0;
-        }
-
-        .dash-card {
-            text-align: center; 
-            border: 1px solid rgba(0, 242, 255, 0.2); 
-            padding: 60px 40px; 
-            border-radius: 24px; 
-            background: rgba(255,255,255,0.01); 
-            backdrop-filter: blur(20px);
-            max-width: 500px;
-            width: 90%;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
-        }
-
-        @keyframes scanLine {
-            0% { top: 0; }
-            100% { top: 100%; }
-        }
-        
-        @keyframes floatHacker {
-            0%, 100% { transform: translateY(0) scale(1); filter: drop-shadow(0 0 10px #00f2ff); }
-            50% { transform: translateY(-20px) scale(1.1); filter: drop-shadow(0 0 30px #00f2ff); }
-        }
-
-        .hacker-logo {
-            font-size: 5rem;
-            color: #00f2ff;
-            margin-bottom: 20px;
-            animation: floatHacker 4s ease-in-out infinite;
-            opacity: 0.8;
-        }
-
-        .glitch-text {
-            color: #ff4444;
-            font-weight: 900;
-            letter-spacing: 12px;
-            text-transform: uppercase;
-            font-size: 1.2rem;
-            margin-top: 10px;
-        }
-
-        /* --- TAMBAHAN SCRIPT (ANIMASI ZOOM & HACKER HOME) --- */
-        section { display: none; min-height: 100vh; padding-top: 100px; }
-        #home { display: block; } 
-        
-        /* Animasi Zoom Out Page */
-        .zoom-effect {
-            animation: zoomOut 0.6s ease-out forwards;
-        }
-        @keyframes zoomOut {
-            from { transform: scale(1.2); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-
-        /* Hacker Style Home (Ikut Gambar Behance) */
-        .matrix-bg {
-            font-family: 'Courier New', monospace;
-            color: #00f2ff;
-            text-shadow: 0 0 8px #00f2ff;
-            text-transform: uppercase;
-        }
-        .blink-text { animation: blink 1s infinite; }
-        @keyframes blink { 0% { opacity: 0; } 50% { opacity: 1; } 100% { opacity: 0; } }
-
-        .dev-popup-box {
-            background: rgba(0, 242, 255, 0.1);
-            border: 1px solid #00f2ff;
-            padding: 15px 30px;
-            border-radius: 4px;
-            display: inline-block;
-            margin-top: 30px;
-            animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-
-        .nav-item.active-nav {
-            color: #00f2ff !important;
-            text-shadow: 0 0 10px #00f2ff;
-        }
-
-        .contact-box, .about-box {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(0, 242, 255, 0.2);
-            padding: 30px;
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            max-width: 600px;
-            margin: 20px auto;
-            text-align: center;
-            color: white;
-        }
-
-        .btn-chat {
-            background: #25d366; color: white; padding: 12px 25px; border-radius: 10px; text-decoration: none; display: inline-block; margin-top: 20px; font-weight: bold;
-        }
-    </style>
 </head>
-<body>
 
+<style>
+    /* CSS ASAL KAU (TIDAK DIUSIK) */
+    #login-card {
+        opacity: 1 !important;
+        transform: none !important;
+        visibility: visible !important;
+        position: relative;
+        overflow: hidden;
+        max-width: 450px;
+        margin: 0 auto;
+    }
+
+    #peserta-dashboard {
+        display: none; 
+        position: fixed; 
+        top: 0; left: 0; 
+        width: 100%; height: 100vh; 
+        background: #060b14; 
+        z-index: 10000; 
+        flex-direction: column; 
+        align-items: center; 
+        justify-content: center; 
+        opacity: 0;
+    }
+
+    .dash-card {
+        text-align: center; 
+        border: 1px solid rgba(0, 242, 255, 0.2); 
+        padding: 60px 40px; 
+        border-radius: 24px; 
+        background: rgba(255,255,255,0.01); 
+        backdrop-filter: blur(20px);
+        max-width: 500px;
+        width: 90%;
+        box-shadow: 0 0 50px rgba(0,0,0,0.8);
+    }
+
+    @keyframes scanLine {
+        0% { top: 0; }
+        100% { top: 100%; }
+    }
+    
+    @keyframes floatHacker {
+        0%, 100% { transform: translateY(0) scale(1); filter: drop-shadow(0 0 10px #00f2ff); }
+        50% { transform: translateY(-20px) scale(1.1); filter: drop-shadow(0 0 30px #00f2ff); }
+    }
+
+    .hacker-logo {
+        font-size: 5rem;
+        color: #00f2ff;
+        margin-bottom: 20px;
+        animation: floatHacker 4s ease-in-out infinite;
+        opacity: 0.8;
+    }
+
+    .glitch-text {
+        color: #ff4444;
+        font-weight: 900;
+        letter-spacing: 12px;
+        text-transform: uppercase;
+        font-size: 1.2rem;
+        margin-top: 10px;
+    }
+
+    /* --- TAMBAHAN SCRIPT (ANIMASI ZOOM & HACKER HOME) --- */
+    section { display: none; min-height: 100vh; padding-top: 100px; }
+    #home { display: block; } 
+    
+    /* Animasi Zoom Out Page */
+    .zoom-effect {
+        animation: zoomOut 0.6s ease-out forwards;
+    }
+    @keyframes zoomOut {
+        from { transform: scale(1.2); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+
+    /* Hacker Style Home (Ikut Gambar Behance) */
+    .matrix-bg {
+        font-family: 'Courier New', monospace;
+        color: #00f2ff;
+        text-shadow: 0 0 8px #00f2ff;
+        text-transform: uppercase;
+    }
+    .blink-text { animation: blink 1s infinite; }
+    @keyframes blink { 0% { opacity: 0; } 50% { opacity: 1; } 100% { opacity: 0; } }
+
+    .dev-popup-box {
+        background: rgba(0, 242, 255, 0.1);
+        border: 1px solid #00f2ff;
+        padding: 15px 30px;
+        border-radius: 4px;
+        display: inline-block;
+        margin-top: 30px;
+        animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    .nav-item.active-nav {
+        color: #00f2ff !important;
+        text-shadow: 0 0 10px #00f2ff;
+    }
+
+    .contact-box, .about-box {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(0, 242, 255, 0.2);
+        padding: 30px;
+        border-radius: 20px;
+        backdrop-filter: blur(10px);
+        max-width: 600px;
+        margin: 20px auto;
+        text-align: center;
+        color: white;
+    }
+
+    .btn-chat {
+        background: #25d366; color: white; padding: 12px 25px; border-radius: 10px; text-decoration: none; display: inline-block; margin-top: 20px; font-weight: bold;
+    }
+</style>
+
+<body>
     <div id="peserta-dashboard">
         <div class="dash-card">
             <i class="fas fa-user-shield" style="font-size: 3.5rem; color: #00aeff; margin-bottom: 20px;"></i>
@@ -156,18 +155,14 @@
     <section id="home">
         <div class="content-wrapper" style="text-align: center;">
             <p class="matrix-bg blink-text" style="font-size: 0.9rem; letter-spacing: 5px;">[ SYSTEM BREACH SIMULATION ACTIVE ]</p>
-            
             <h1 style="font-size: 5rem; font-weight: 900; color: #fff; letter-spacing: 15px; margin: 10px 0; text-shadow: 0 0 20px rgba(0, 242, 255, 0.5);">DETECT SYSTEM</h1>
-            
             <div style="font-size: 1.2rem; color: #00f2ff; margin-bottom: 20px;">
                 <i class="fas fa-ghost"></i> &nbsp; <i class="fas fa-mask"></i> &nbsp; <i class="fas fa-user-secret"></i>
             </div>
-
             <div class="dev-popup-box">
                 <span class="matrix-bg" style="color: #fff;">AUTHORIZED BY: </span>
                 <span style="color: #00f2ff; font-weight: 900; letter-spacing: 2px;">IMAN DEVELOPER</span>
             </div>
-
             <div class="matrix-bg" style="margin-top: 40px; font-size: 0.7rem; opacity: 0.6; line-height: 2;">
                 > INITIALIZING ROOT EXPLOIT... DONE <br>
                 > DECRYPTING DATABASE... 100% <br>
@@ -211,127 +206,93 @@
     </section>
 
     <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, get, child, update, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, get, child, update, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    // 1. CONFIG & INIT
-    const firebaseConfig = {
-        apiKey: "AIzaSyCz5cj9VBeiunHIvxSSZNKXLr9MDZcnut0",
-        authDomain: "detect-system-v3.firebaseapp.com",
-        databaseURL: "https://detect-system-v3-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "detect-system-v3",
-        storageBucket: "detect-system-v3.firebasestorage.app",
-        messagingSenderId: "18524075269",
-        appId: "1:18524075269:web:dae72d517d9bc5cc89736c"
-    };
+        const firebaseConfig = {
+            apiKey: "AIzaSyCz5cj9VBeiunHIvxSSZNKXLr9MDZcnut0",
+            authDomain: "detect-system-v3.firebaseapp.com",
+            databaseURL: "https://detect-system-v3-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "detect-system-v3",
+            storageBucket: "detect-system-v3.firebasestorage.app",
+            messagingSenderId: "18524075269",
+            appId: "1:18524075269:web:dae72d517d9bc5cc89736c"
+        };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    let currentActiveUser = null;
-    let peer = null;
-    let localStream = null;
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        let currentActiveUser = null;
+        let peer = null;
+        let localStream = null;
 
-    // --- RE-INIT VANTA INSIDE MODULE ---
-    function initVanta() {
-        if (window.VANTA) {
-            window.VANTA.HALO({
-                el: "#vanta-bg",
-                mouseControls: true,
-                touchControls: true,
-                baseColor: 0x0,
-                backgroundColor: 0x0,
-                amplitudeFactor: 1.5,
-                size: 1.5
-            });
-        }
-    }
-    initVanta(); // Panggil terus bila page load
-
-    // 2. GATEWAY LOGIN
-    window.initializeGateway = async function() {
-        const userId = document.getElementById('user-input').value.trim();
-        const userPass = document.getElementById('pass-input').value.trim();
-        
-        if (!userId || !userPass) return alert("⚠️ Isi ID & Key!");
-        
-        const hashedInput = CryptoJS.SHA256(userPass).toString();
-        
-        try {
-            const snapshot = await get(child(ref(db), `participants/${userId}`));
-            if (snapshot.exists()) {
-                const userData = snapshot.val();
-                if (userData.pass === hashedInput) {
-                    currentActiveUser = userId;
-                    document.getElementById('display-name').innerText = userData.name;
-                    const dash = document.getElementById('peserta-dashboard');
-                    dash.style.display = "flex";
-                    gsap.to(dash, { opacity: 1, duration: 0.8 });
-                } else { alert("❌ Key Salah!"); }
-            } else { alert("❌ ID Tidak Wujud!"); }
-        } catch (e) { alert("⚠️ Database Error!"); }
-    }
-
-    // 3. START MONITORING (SHARE SCREEN)
-    window.startScreenShareFromUI = async function() {
-        const btn = document.getElementById('btn-share');
-        
-        try {
-            // Request screen capture
-            localStream = await navigator.mediaDevices.getDisplayMedia({
-                video: { cursor: "always" },
-                audio: false
-            });
-
-            // Init PeerJS guna ID user
-            peer = new Peer(currentActiveUser);
-
-            peer.on('open', (id) => {
-                const userRef = ref(db, `participants/${currentActiveUser}`);
-                update(userRef, { status: "ONLINE" });
-
-                peer.on('call', (call) => {
-                    call.answer(localStream);
+        function initVanta() {
+            if (window.VANTA) {
+                window.VANTA.HALO({
+                    el: "#vanta-bg",
+                    mouseControls: true,
+                    touchControls: true,
+                    baseColor: 0x0,
+                    backgroundColor: 0x0,
+                    amplitudeFactor: 1.5,
+                    size: 1.5
                 });
+            }
+        }
+        initVanta();
 
-                onDisconnect(userRef).update({ status: "OFFLINE" });
+        window.initializeGateway = async function() {
+            const userId = document.getElementById('user-input').value.trim();
+            const userPass = document.getElementById('pass-input').value.trim();
+            if (!userId || !userPass) return alert("⚠️ Isi ID & Key!");
+            const hashedInput = CryptoJS.SHA256(userPass).toString();
+            try {
+                const snapshot = await get(child(ref(db), `participants/${userId}`));
+                if (snapshot.exists()) {
+                    const userData = snapshot.val();
+                    if (userData.pass === hashedInput) {
+                        currentActiveUser = userId;
+                        document.getElementById('display-name').innerText = userData.name;
+                        const dash = document.getElementById('peserta-dashboard');
+                        dash.style.display = "flex";
+                        gsap.to(dash, { opacity: 1, duration: 0.8 });
+                    } else { alert("❌ Key Salah!"); }
+                } else { alert("❌ ID Tidak Wujud!"); }
+            } catch (e) { alert("⚠️ Database Error!"); }
+        }
 
-                btn.innerText = "MONITORING ACTIVE";
-                btn.style.borderColor = "#22c55e";
-                btn.style.color = "#22c55e";
-                btn.disabled = true;
-                
-                console.log("System Authorized: " + id);
+        window.startScreenShareFromUI = async function() {
+            const btn = document.getElementById('btn-share');
+            try {
+                localStream = await navigator.mediaDevices.getDisplayMedia({ video: { cursor: "always" }, audio: false });
+                peer = new Peer(currentActiveUser);
+                peer.on('open', (id) => {
+                    update(ref(db, `participants/${currentActiveUser}`), { status: "ONLINE" });
+                    peer.on('call', (call) => { call.answer(localStream); });
+                    onDisconnect(ref(db, `participants/${currentActiveUser}`)).update({ status: "OFFLINE" });
+                    btn.innerText = "MONITORING ACTIVE";
+                    btn.style.borderColor = "#22c55e";
+                    btn.style.color = "#22c55e";
+                    btn.disabled = true;
+                });
+                localStream.getVideoTracks()[0].onended = function () {
+                    if(currentActiveUser) { update(ref(db, `participants/${currentActiveUser}`), { status: "OFFLINE" }); }
+                    location.reload();
+                };
+            } catch (err) { alert("⚠️ Error: Gunakan Laptop/PC!"); }
+        }
+
+        window.showPage = function(pageId) {
+            document.querySelectorAll('section').forEach(sec => {
+                sec.style.display = 'none';
+                sec.classList.remove('zoom-effect');
             });
-
-            localStream.getVideoTracks()[0].onended = function () {
-                if(currentActiveUser) {
-                    update(ref(db, `participants/${currentActiveUser}`), { status: "OFFLINE" });
-                }
-                location.reload();
-            };
-
-        } catch (err) {
-            alert("⚠️ Error: Pastikan anda menggunakan Laptop/PC untuk Share Screen!");
+            const activePage = document.getElementById(pageId);
+            if(activePage) {
+                activePage.style.display = 'block';
+                activePage.classList.add('zoom-effect');
+            }
+            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active-nav'));
+            if(event && event.target) { event.target.classList.add('active-nav'); }
         }
-    }
-
-    // Export function ke window supaya HTML onclick boleh baca
-    window.showPage = function(pageId) {
-        document.querySelectorAll('section').forEach(sec => {
-            sec.style.display = 'none';
-            sec.classList.remove('zoom-effect');
-        });
-        const activePage = document.getElementById(pageId);
-        if(activePage) {
-            activePage.style.display = 'block';
-            activePage.classList.add('zoom-effect');
-        }
-
-        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active-nav'));
-        if(event && event.target) {
-            event.target.classList.add('active-nav');
-        }
-    }
-</script>
+    </script>
 </body>
-</html>
