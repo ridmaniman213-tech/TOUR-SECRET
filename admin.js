@@ -1,337 +1,143 @@
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DETECT SYSTEM | IMANZ DEV</title>
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getDatabase, ref, set, onValue, remove, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+// --- [ 1. CONFIG FIREBASE IKUT SCREENSHOT KAU ] ---
+const firebaseConfig = {
+    apiKey: "AIzaSyCz5cj9VBeiunHIvxSSZNKXLr9MDZcnut0",
+    authDomain: "detect-system-v3.firebaseapp.com",
+    databaseURL: "https://detect-system-v3-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "detect-system-v3",
+    storageBucket: "detect-system-v3.firebasestorage.app",
+    messagingSenderId: "18524075269",
+    appId: "1:18524075269:web:dae72d517d9bc5cc89736c"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// --- [ 2. PEERJS SETUP (UNTUK CCTV) ] ---
+// ID Peer Admin kena statik supaya peserta senang cari
+const peer = new Peer('ADMIN_OPERATOR_IMANZ'); 
+
+peer.on('open', (id) => {
+    console.log('Admin Peer ID is: ' + id);
+});
+
+// --- [ 3. FUNCTION CREATE ACCOUNT ] ---
+window.addParticipant = function() {
+    const nameInput = document.getElementById('pName');
+    const msg = document.getElementById('status-msg');
+    const name = nameInput.value.trim();
     
-    <link rel="stylesheet" href="public/css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    if (name === "") return alert("Nama wajib isi!");
+
+    // Generate ID (USER-1234) & Key (Rawak 5 Aksara)
+    const pID = "USER-" + Math.floor(1000 + Math.random() * 9000);
+    const pKey = Math.random().toString(36).substring(7).toUpperCase();
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.halo.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    
-    </head>
-    <style>
-        /* CSS ASAL KAU (TIDAK DIUSIK) */
-        #login-card {
-            opacity: 1 !important;
-            transform: none !important;
-            visibility: visible !important;
-            position: relative;
-            overflow: hidden;
-            max-width: 450px;
-            margin: 0 auto;
-        }
+    // Hash key guna CryptoJS (pastikan script ada kat admin.html)
+    const hashedKey = CryptoJS.SHA256(pKey).toString();
 
-        #peserta-dashboard {
-            display: none; 
-            position: fixed; 
-            top: 0; left: 0; 
-            width: 100%; height: 100vh; 
-            background: #060b14; 
-            z-index: 10000; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            opacity: 0;
-        }
+    // Simpan ke Firebase
+    set(ref(db, 'participants/' + pID), {
+        name: name,
+        pass: hashedKey, // Simpan yang dah di-hash
+        status: "OFFLINE",
+        created_at: serverTimestamp()
+    }).then(() => {
+        msg.innerHTML = `
+            <div class="bg-blue-500/10 border border-blue-500/50 p-3 rounded-lg mt-2">
+                <p class="text-blue-400 text-xs font-bold">✅ ACCOUNT CREATED!</p>
+                <code class="text-white text-[10px] block mt-1">ID: ${pID} | KEY: ${pKey}</code>
+                <p class="text-[9px] text-slate-500 mt-1">*Bagi ID & Key ni kat kawan kau.</p>
+            </div>`;
+        nameInput.value = ""; // Reset input box
+    }).catch((err) => {
+        console.error(err);
+        alert("Ralat Firebase! Pastikan 'Rules' di set kepada true.");
+    });
+}
 
-        .dash-card {
-            text-align: center; 
-            border: 1px solid rgba(0, 242, 255, 0.2); 
-            padding: 60px 40px; 
-            border-radius: 24px; 
-            background: rgba(255,255,255,0.01); 
-            backdrop-filter: blur(20px);
-            max-width: 500px;
-            width: 90%;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
-        }
-
-        @keyframes scanLine {
-            0% { top: 0; }
-            100% { top: 100%; }
-        }
-        
-        @keyframes floatHacker {
-            0%, 100% { transform: translateY(0) scale(1); filter: drop-shadow(0 0 10px #00f2ff); }
-            50% { transform: translateY(-20px) scale(1.1); filter: drop-shadow(0 0 30px #00f2ff); }
-        }
-
-        .hacker-logo {
-            font-size: 5rem;
-            color: #00f2ff;
-            margin-bottom: 20px;
-            animation: floatHacker 4s ease-in-out infinite;
-            opacity: 0.8;
-        }
-
-        .glitch-text {
-            color: #ff4444;
-            font-weight: 900;
-            letter-spacing: 12px;
-            text-transform: uppercase;
-            font-size: 1.2rem;
-            margin-top: 10px;
-        }
-
-        /* --- TAMBAHAN SCRIPT (ANIMASI ZOOM & HACKER HOME) --- */
-        section { display: none; min-height: 100vh; padding-top: 100px; }
-        #home { display: block; } 
-        
-        /* Animasi Zoom Out Page */
-        .zoom-effect {
-            animation: zoomOut 0.6s ease-out forwards;
-        }
-        @keyframes zoomOut {
-            from { transform: scale(1.2); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-
-        /* Hacker Style Home (Ikut Gambar Behance) */
-        .matrix-bg {
-            font-family: 'Courier New', monospace;
-            color: #00f2ff;
-            text-shadow: 0 0 8px #00f2ff;
-            text-transform: uppercase;
-        }
-        .blink-text { animation: blink 1s infinite; }
-        @keyframes blink { 0% { opacity: 0; } 50% { opacity: 1; } 100% { opacity: 0; } }
-
-        .dev-popup-box {
-            background: rgba(0, 242, 255, 0.1);
-            border: 1px solid #00f2ff;
-            padding: 15px 30px;
-            border-radius: 4px;
-            display: inline-block;
-            margin-top: 30px;
-            animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-
-        .nav-item.active-nav {
-            color: #00f2ff !important;
-            text-shadow: 0 0 10px #00f2ff;
-        }
-
-        .contact-box, .about-box {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(0, 242, 255, 0.2);
-            padding: 30px;
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            max-width: 600px;
-            margin: 20px auto;
-            text-align: center;
-            color: white;
-        }
-
-        .btn-chat {
-            background: #25d366; color: white; padding: 12px 25px; border-radius: 10px; text-decoration: none; display: inline-block; margin-top: 20px; font-weight: bold;
-        }
-    </style>
-</head>
-<body>
-
-    <div id="peserta-dashboard">
-        <div class="dash-card">
-            <i class="fas fa-user-shield" style="font-size: 3.5rem; color: #00aeff; margin-bottom: 20px;"></i>
-            <h1 id="display-name" style="color: #00d5ff; font-size: 2.5rem; font-weight: 900; text-transform: uppercase; margin: 10px 0;">PESERTA</h1>
-            <button id="btn-share" onclick="startScreenShareFromUI()" style="width: 100%; margin-top: 40px; padding: 18px; border-radius: 12px; border: 1px solid #00d5ff; background: transparent; color: #00bbff; font-weight: 900; cursor: pointer;">INITIALIZE MONITORING</button>
-        </div>
-    </div>
-
-    <div id="vanta-bg" style="width: 100%; height: 100vh; position: fixed; z-index: -1;"></div>
-
-    <nav id="navbar">
-        <a href="#home" class="nav-item active active-nav" onclick="showPage('home')">HOME</a>
-        <a href="#login" class="nav-item" onclick="showPage('login')">LOGIN</a>
-        <a href="#about" class="nav-item" onclick="showPage('about')">ABOUT</a>
-        <a href="#contact" class="nav-item" onclick="showPage('contact')">CONTACT</a>
-    </nav>
-
-    <section id="home">
-        <div class="content-wrapper" style="text-align: center;">
-            <p class="matrix-bg blink-text" style="font-size: 0.9rem; letter-spacing: 5px;">[ SYSTEM BREACH SIMULATION ACTIVE ]</p>
-            
-            <h1 style="font-size: 5rem; font-weight: 900; color: #fff; letter-spacing: 15px; margin: 10px 0; text-shadow: 0 0 20px rgba(0, 242, 255, 0.5);">DETECT SYSTEM</h1>
-            
-            <div style="font-size: 1.2rem; color: #00f2ff; margin-bottom: 20px;">
-                <i class="fas fa-ghost"></i> &nbsp; <i class="fas fa-mask"></i> &nbsp; <i class="fas fa-user-secret"></i>
-            </div>
-
-            <div class="dev-popup-box">
-                <span class="matrix-bg" style="color: #fff;">AUTHORIZED BY: </span>
-                <span style="color: #00f2ff; font-weight: 900; letter-spacing: 2px;">IMAN DEVELOPER</span>
-            </div>
-
-            <div class="matrix-bg" style="margin-top: 40px; font-size: 0.7rem; opacity: 0.6; line-height: 2;">
-                > INITIALIZING ROOT EXPLOIT... DONE <br>
-                > DECRYPTING DATABASE... 100% <br>
-                > BYPASSING FIREWALL... GRANTED
-            </div>
-        </div>
-    </section>
-
-    <section id="login">
-        <div class="login-glass" id="login-card">
-            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: #00ccff; opacity: 0.4; animation: scanLine 3s linear infinite;"></div>
-            <div style="text-align: center; margin-bottom: 35px;">
-                <div style="width: 70px; height: 70px; border: 1px solid #00e1ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
-                    <i class="fas fa-fingerprint" style="font-size: 2rem; color: #00bfff;"></i>
-                </div>
-                <h2 style="font-size: 1.8rem; font-weight: 200; letter-spacing: 5px;">ACCESS GATEWAY</h2>
-            </div>
-            <div class="input-group" style="display: flex; flex-direction: column; gap: 15px;">
-                <input type="text" placeholder="IDENTITY ID" id="user-input" style="width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; color: #fff; outline: none;">
-                <input type="password" placeholder="SECRET KEY" id="pass-input" style="width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; color: #fff; outline: none;">
-            </div>
-            <button class="btn-connect" onclick="initializeGateway()" style="width: 100%; margin-top: 25px; padding: 15px; border-radius: 10px; border: none; background: #fff; color: #000; font-weight: 900; letter-spacing: 2px; cursor: pointer;">INITIALIZE GATEWAY</button>
-        </div>
-    </section>
-
-    <section id="about">
-        <div class="about-box">
-            <h2 style="color:#00f2ff; letter-spacing: 5px;">ABOUT DETECT SYSTEM</h2>
-            <p style="margin-top:20px;">Sistem pemantauan integriti real-time untuk memastikan keadilan dalam setiap sesi digital.</p>
-        </div>
-    </section>
-
-    <section id="contact">
-        <div class="contact-box">
-            <h2 style="color:#00f2ff; letter-spacing: 5px;">HUBUNGI DEV</h2>
-            <p style="font-weight: bold; margin-top: 15px;">No. Tel: +60 11-2683 0787</p>
-            <a href="https://wa.me/601126830787?text=Assalamualaikum%20Iman" class="btn-chat">
-                <i class="fab fa-whatsapp"></i> CHAT LANGSUNG
-            </a>
-        </div>
-    </section>
-
-    <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, get, child, update, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-    // 1. CONFIG & INIT
-    const firebaseConfig = {
-        apiKey: "AIzaSyCz5cj9VBeiunHIvxSSZNKXLr9MDZcnut0",
-        authDomain: "detect-system-v3.firebaseapp.com",
-        databaseURL: "https://detect-system-v3-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "detect-system-v3",
-        storageBucket: "detect-system-v3.firebasestorage.app",
-        messagingSenderId: "18524075269",
-        appId: "1:18524075269:web:dae72d517d9bc5cc89736c"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    let currentActiveUser = null;
-    let peer = null;
-    let localStream = null;
-
-    // --- RE-INIT VANTA INSIDE MODULE ---
-    function initVanta() {
-        if (window.VANTA) {
-            window.VANTA.HALO({
-                el: "#vanta-bg",
-                mouseControls: true,
-                touchControls: true,
-                baseColor: 0x0,
-                backgroundColor: 0x0,
-                amplitudeFactor: 1.5,
-                size: 1.5
-            });
-        }
+// --- [ 4. FUNCTION DELETE ACCOUNT ] ---
+window.deleteParticipant = function(id, name) {
+    if(confirm(`Padam akaun ${name}?`)) {
+        remove(ref(db, 'participants/' + id));
     }
-    initVanta(); // Panggil terus bila page load
+}
 
-    // 2. GATEWAY LOGIN
-    window.initializeGateway = async function() {
-        const userId = document.getElementById('user-input').value.trim();
-        const userPass = document.getElementById('pass-input').value.trim();
-        
-        if (!userId || !userPass) return alert("⚠️ Isi ID & Key!");
-        
-        const hashedInput = CryptoJS.SHA256(userPass).toString();
-        
-        try {
-            const snapshot = await get(child(ref(db), `participants/${userId}`));
-            if (snapshot.exists()) {
-                const userData = snapshot.val();
-                if (userData.pass === hashedInput) {
-                    currentActiveUser = userId;
-                    document.getElementById('display-name').innerText = userData.name;
-                    const dash = document.getElementById('peserta-dashboard');
-                    dash.style.display = "flex";
-                    gsap.to(dash, { opacity: 1, duration: 0.8 });
-                } else { alert("❌ Key Salah!"); }
-            } else { alert("❌ ID Tidak Wujud!"); }
-        } catch (e) { alert("⚠️ Database Error!"); }
-    }
+// --- [ 5. MONITORING LIST (REAL-TIME) ] ---
+const monitorList = document.getElementById('monitor-list');
+const activeCount = document.getElementById('active-count');
 
-    // 3. START MONITORING (SHARE SCREEN)
-    window.startScreenShareFromUI = async function() {
-        const btn = document.getElementById('btn-share');
-        
-        try {
-            // Request screen capture
-            localStream = await navigator.mediaDevices.getDisplayMedia({
-                video: { cursor: "always" },
-                audio: false
-            });
+onValue(ref(db, 'participants'), (snapshot) => {
+    monitorList.innerHTML = "";
+    let onlineCount = 0;
 
-            // Init PeerJS guna ID user
-            peer = new Peer(currentActiveUser);
+    if (snapshot.exists()) {
+        snapshot.forEach((child) => {
+            const id = child.key;
+            const data = child.val();
+            if (data.status === "ONLINE") onlineCount++;
 
-            peer.on('open', (id) => {
-                const userRef = ref(db, `participants/${currentActiveUser}`);
-                update(userRef, { status: "ONLINE" });
-
-                peer.on('call', (call) => {
-                    call.answer(localStream);
-                });
-
-                onDisconnect(userRef).update({ status: "OFFLINE" });
-
-                btn.innerText = "MONITORING ACTIVE";
-                btn.style.borderColor = "#22c55e";
-                btn.style.color = "#22c55e";
-                btn.disabled = true;
-                
-                console.log("System Authorized: " + id);
-            });
-
-            localStream.getVideoTracks()[0].onended = function () {
-                if(currentActiveUser) {
-                    update(ref(db, `participants/${currentActiveUser}`), { status: "OFFLINE" });
-                }
-                location.reload();
-            };
-
-        } catch (err) {
-            alert("⚠️ Error: Pastikan anda menggunakan Laptop/PC untuk Share Screen!");
-        }
-    }
-
-    // Export function ke window supaya HTML onclick boleh baca
-    window.showPage = function(pageId) {
-        document.querySelectorAll('section').forEach(sec => {
-            sec.style.display = 'none';
-            sec.classList.remove('zoom-effect');
+            const card = document.createElement('div');
+            card.className = "p-1"; // Padding celah grid
+            card.innerHTML = `
+                <div class="glass p-4 rounded-xl border-l-4 ${data.status === "ONLINE" ? 'border-blue-500 shadow-[0_0_10px_rgba(56,189,248,0.2)]' : 'border-slate-700'}">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <b class="text-white block">${data.name}</b>
+                            <code class="text-[10px] text-slate-500">${id}</code>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="watchLive('${id}')" 
+                                class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded text-[10px] font-bold transition ${data.status === "ONLINE" ? '' : 'opacity-30 cursor-not-allowed'}"
+                                ${data.status === "ONLINE" ? '' : 'disabled'}>
+                                WATCH
+                            </button>
+                            <button onclick="deleteParticipant('${id}', '${data.name}')" 
+                                class="bg-red-500/20 hover:bg-red-500 text-red-500 hover:text-white px-3 py-1 rounded text-[10px] transition">
+                                DEL
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+            monitorList.appendChild(card);
         });
-        const activePage = document.getElementById(pageId);
-        if(activePage) {
-            activePage.style.display = 'block';
-            activePage.classList.add('zoom-effect');
-        }
-
-        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active-nav'));
-        if(event && event.target) {
-            event.target.classList.add('active-nav');
-        }
+    } else {
+        monitorList.innerHTML = '<p class="text-slate-600 italic text-sm">Tiada isyarat peserta...</p>';
     }
+    activeCount.innerText = onlineCount;
+});
+
+// --- [ 6. LIVE WATCH LOGIC ] ---
+window.watchLive = function(targetId) {
+    const modal = document.getElementById('cctv-modal');
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
+    document.getElementById('target-id').innerText = "TARGET_STREAM: " + targetId;
+    
+    // Admin request stream dari peserta (PeerJS)
+    const call = peer.call(targetId, null); 
+    
+    call.on('stream', (remoteStream) => {
+        const videoElement = document.getElementById('remoteVideo');
+        videoElement.srcObject = remoteStream;
+    });
+
+    call.on('error', (err) => {
+        console.error("Peer Error:", err);
+        alert("Gagal menyambung ke kamera peserta.");
+    });
+}
+
+window.closeVideo = function() {
+    document.getElementById('cctv-modal').style.display = 'none';
+    const videoElement = document.getElementById('remoteVideo');
+    if (videoElement.srcObject) {
+        videoElement.srcObject.getTracks().forEach(track => track.stop());
+        videoElement.srcObject = null;
+    }
+}
 </script>
 </body>
 </html>
