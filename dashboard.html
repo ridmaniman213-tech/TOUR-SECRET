@@ -17,7 +17,7 @@
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
-        body { background-color: #0f1115; color: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; overflow: hidden; }
+        body { background-color: #0f1115; color: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; }
         .glass-card { background: #1c1f26; border: 1px solid rgba(255,255,255,0.05); border-radius: 24px; }
         
         /* Navigation Styles */
@@ -29,15 +29,21 @@
         .tab-content.active { display: block; animation: fadeIn 0.4s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Sidebar Slide Logic */
-        #sidebar { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 50; }
-        .sidebar-closed { transform: translateX(-240px); }
-        .main-expanded { margin-left: -240px; }
+        /* Sidebar Logic for Mobile & Desktop */
+        #sidebar { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 100; }
+        @media (max-width: 767px) {
+            .sidebar-closed { transform: translateX(-100%); }
+        }
+        @media (min-width: 768px) {
+            .sidebar-closed { transform: translateX(-280px); margin-right: -280px; }
+        }
     </style>
 </head>
-<body class="flex h-screen w-full">
+<body class="flex h-screen w-full relative">
 
-    <aside id="sidebar" class="w-72 border-r border-white/5 p-6 flex flex-col gap-8 bg-[#0f1115] shrink-0">
+    <div id="overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/60 z-[90] hidden"></div>
+
+    <aside id="sidebar" class="fixed md:relative w-[280px] h-screen border-r border-white/5 p-6 flex flex-col gap-8 bg-[#0f1115] shrink-0 sidebar-closed">
         <div class="flex items-center gap-3 px-2">
             <div class="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center min-w-[40px]">
                 <i data-lucide="shield" class="text-black"></i>
@@ -64,32 +70,32 @@
         </div>
     </aside>
 
-    <button onclick="toggleSidebar()" class="fixed left-[260px] top-10 z-[60] bg-green-500 text-black p-2 rounded-full shadow-xl transition-all duration-400" id="btn-toggle">
-        <i data-lucide="chevron-left" id="toggle-icon"></i>
+    <button onclick="toggleSidebar()" class="fixed left-4 bottom-10 md:bottom-auto md:left-[260px] md:top-10 z-[110] bg-green-500 text-black p-4 rounded-full shadow-2xl transition-all duration-400" id="btn-toggle">
+        <i data-lucide="menu" id="toggle-icon"></i>
     </button>
 
-    <main id="main-content" class="flex-1 p-10 overflow-y-auto transition-all duration-400">
+    <main id="main-content" class="flex-1 p-4 md:p-10 overflow-y-auto transition-all duration-400 w-full">
 
         <div id="tab-dashboard" class="tab-content active">
-            <div class="glass-card p-10 relative overflow-hidden h-[300px] flex flex-col justify-center border-l-8 border-green-500">
+            <div class="glass-card p-6 md:p-10 relative overflow-hidden min-h-[250px] md:h-[300px] flex flex-col justify-center border-l-8 border-green-500">
                 <div class="absolute -right-20 -top-20 w-64 h-64 bg-green-500/10 rounded-full blur-3xl"></div>
-                <h1 class="text-5xl font-extrabold mb-2 tracking-tighter">Welcome Back,</h1>
-                <h2 class="text-3xl font-bold text-green-500 uppercase tracking-widest">Iman & Izzat</h2>
+                <h1 class="text-3xl md:text-5xl font-extrabold mb-2 tracking-tighter">Welcome Back,</h1>
+                <h2 class="text-xl md:text-3xl font-bold text-green-500 uppercase tracking-widest">Iman & Izzat</h2>
                 <div class="mt-6 flex items-center gap-3">
                     <span class="relative flex h-3 w-3">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                         <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
                     </span>
-                    <p class="text-slate-400 text-sm font-bold uppercase tracking-widest">System Core: Operational</p>
+                    <p class="text-slate-400 text-[10px] md:text-sm font-bold uppercase tracking-widest">System Core: Operational</p>
                 </div>
             </div>
         </div>
 
         <div id="tab-participants" class="tab-content">
-            <div class="grid grid-cols-12 gap-8">
+            <div class="grid grid-cols-12 gap-6 md:gap-8">
                 <div class="col-span-12 lg:col-span-4">
-                    <div class="glass-card p-8 border border-white/5">
-                        <h3 class="font-extrabold text-xl mb-6 text-green-500 uppercase tracking-tighter">Generate Access</h3>
+                    <div class="glass-card p-6 md:p-8 border border-white/5">
+                        <h3 class="font-extrabold text-lg mb-6 text-green-500 uppercase tracking-tighter">Generate Access</h3>
                         <div class="space-y-4">
                             <input type="text" id="pName" placeholder="Nama Peserta..." 
                                 class="w-full bg-black/40 border border-white/10 p-4 rounded-2xl outline-none focus:border-green-500 text-white transition-all">
@@ -104,24 +110,24 @@
                     <h3 class="font-bold mb-4 flex items-center gap-2 text-slate-500 uppercase text-xs tracking-[0.2em]">
                         <i data-lucide="database" class="w-4 h-4"></i> Registry Database
                     </h3>
-                    <div id="account-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                    <div id="account-list" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
                 </div>
             </div>
         </div>
 
         <div id="tab-monitoring" class="tab-content">
-            <div class="flex justify-between items-center mb-8">
-                <h3 class="text-2xl font-black text-green-500 uppercase tracking-tighter">Live Surveillance</h3>
-                <div class="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-full border border-white/5">
-                    <span id="active-count" class="text-green-500 text-xs font-black uppercase tracking-widest">0 Active Signals</span>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <h3 class="text-xl md:text-2xl font-black text-green-500 uppercase tracking-tighter">Live Surveillance</h3>
+                <div class="bg-white/5 px-4 py-2 rounded-full border border-white/5">
+                    <span id="active-count" class="text-green-500 text-[10px] font-black uppercase tracking-widest">0 Active Signals</span>
                 </div>
             </div>
-            <div id="monitor-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            <div id="monitor-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </div>
 
     </main>
 
-    <div id="cctv-modal" class="fixed inset-0 bg-black/95 z-[100] hidden flex-col items-center justify-center p-4">
+    <div id="cctv-modal" class="fixed inset-0 bg-black/95 z-[200] hidden flex-col items-center justify-center p-4">
         <div class="w-full max-w-5xl glass-card overflow-hidden border border-green-500/30">
             <div class="p-4 bg-white/5 flex justify-between items-center">
                 <span id="target-id" class="text-[10px] font-black text-green-500 uppercase tracking-widest">Establishing Link...</span>
@@ -137,7 +143,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, onValue, remove, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // 1. CONFIG FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyCz5cj9VBeiunHIvxSSZNKXLr9MDZcnut0",
             authDomain: "detect-system-v3.firebaseapp.com",
@@ -150,54 +155,50 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        
-        // 2. INITIALIZE PEER (ADMIN)
-        // ID ni kene sama dengan apa yang script peserta panggil
         const peer = new Peer('ADMIN_OPERATOR_IMANZ');
 
-        // 3. UI FUNCTIONS (SWITCH TAB & SIDEBAR)
         window.switchTab = (tabName, el) => {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            
             const target = document.getElementById('tab-' + tabName);
             if(target) target.classList.add('active');
             if(el) el.classList.add('active');
+            if(window.innerWidth < 768) window.toggleSidebar(); // Auto-close sidebar on mobile after pick
             lucide.createIcons();
         };
 
         window.toggleSidebar = () => {
             const sidebar = document.getElementById('sidebar');
-            const btn = document.getElementById('btn-toggle');
+            const overlay = document.getElementById('overlay');
             const icon = document.getElementById('toggle-icon');
+            const btn = document.getElementById('btn-toggle');
+            
             sidebar.classList.toggle('sidebar-closed');
-            btn.style.left = sidebar.classList.contains('sidebar-closed') ? "20px" : "260px";
-            icon.setAttribute('data-lucide', sidebar.classList.contains('sidebar-closed') ? 'chevron-right' : 'chevron-left');
+            const isClosed = sidebar.classList.contains('sidebar-closed');
+
+            if (window.innerWidth < 768) {
+                overlay.classList.toggle('hidden', isClosed);
+                icon.setAttribute('data-lucide', isClosed ? 'menu' : 'x');
+            } else {
+                btn.style.left = isClosed ? "20px" : "260px";
+                icon.setAttribute('data-lucide', isClosed ? 'chevron-right' : 'chevron-left');
+            }
             lucide.createIcons();
         };
 
-        // 4. MONITORING LOGIC (WATCH LIVE)
         window.watchLive = (userId) => {
             const modal = document.getElementById('cctv-modal');
             const video = document.getElementById('remoteVideo');
             const statusLabel = document.getElementById('target-id');
-
             modal.style.display = 'flex';
-            statusLabel.innerText = "CONNECTING TO: " + userId;
-
-            // Admin call peserta (null bermaksud kita tak hantar video kita, kita nak video dia je)
+            statusLabel.innerText = "CONNECTING: " + userId;
             const call = peer.call(userId, null);
-            
             call.on('stream', (remoteStream) => {
                 video.srcObject = remoteStream;
-                statusLabel.innerText = "LIVE SIGNAL: " + userId;
+                statusLabel.innerText = "LIVE: " + userId;
                 video.play().catch(e => console.log("Play error:", e));
             });
-
-            call.on('error', (err) => {
-                alert("Gagal sambung ke " + userId + ". Peserta mungkin dah offline.");
-                window.closeVideo();
-            });
+            call.on('error', () => { alert("Offline."); window.closeVideo(); });
         };
 
         window.closeVideo = () => {
@@ -210,14 +211,11 @@
             }
         };
 
-        // 5. FIREBASE SYNC (CREATE & LIST)
         document.getElementById('btnCreate').onclick = function() {
             const name = document.getElementById('pName').value.trim();
             if (!name) return;
-            
             const pID = "ID-" + Math.floor(100 + Math.random() * 899);
             const pKey = Math.random().toString(36).substring(2, 8).toUpperCase();
-            
             set(ref(db, 'participants/' + pID), {
                 name: name,
                 pass: CryptoJS.SHA256(pKey).toString(),
@@ -226,7 +224,7 @@
                 created_at: serverTimestamp()
             }).then(() => {
                 const msg = document.getElementById('status-msg');
-                msg.innerHTML = `<div class="p-4 bg-green-500 text-black font-bold rounded-2xl text-xs text-center uppercase">Success Created!</div>`;
+                msg.innerHTML = `<div class="p-4 bg-green-500 text-black font-bold rounded-2xl text-xs text-center uppercase">Identity Linked!</div>`;
                 document.getElementById('pName').value = "";
                 setTimeout(() => { msg.innerHTML = ""; }, 3000);
             });
@@ -238,14 +236,12 @@
             const activeCount = document.getElementById('active-count');
             accList.innerHTML = ""; monList.innerHTML = "";
             let onlineTotal = 0;
-
             snapshot.forEach((child) => {
                 const id = child.key;
                 const data = child.val();
                 const isOnline = data.status === "ONLINE";
                 if(isOnline) onlineTotal++;
 
-                // List Card
                 const card = document.createElement('div');
                 card.className = "glass-card p-5 border border-white/5 relative group";
                 card.innerHTML = `
@@ -260,14 +256,13 @@
                     </button>`;
                 accList.appendChild(card);
 
-                // Monitor Card
                 if(isOnline) {
                     const monCard = document.createElement('div');
                     monCard.className = "glass-card p-6 border-b-4 border-green-500";
                     monCard.innerHTML = `
-                        <h4 class="font-bold text-white mb-4 uppercase tracking-tighter">${data.name}</h4>
-                        <button onclick="watchLive('${id}')" class="w-full bg-green-500 hover:bg-green-400 text-black py-3 rounded-xl font-black text-xs transition uppercase">
-                            View Screen
+                        <h4 class="font-bold text-white mb-4 uppercase tracking-tighter text-sm">${data.name}</h4>
+                        <button onclick="watchLive('${id}')" class="w-full bg-green-500 hover:bg-green-400 text-black py-3 rounded-xl font-black text-[10px] transition uppercase">
+                            Watch Signal
                         </button>`;
                     monList.appendChild(monCard);
                 }
@@ -278,7 +273,6 @@
 
         window.deletePart = (id) => { if(confirm("Hapus " + id + "?")) remove(ref(db, 'participants/' + id)); };
         window.logoutAdmin = () => { sessionStorage.clear(); window.location.href = "admin.html"; };
-
         lucide.createIcons();
     </script>
 </body>
