@@ -1,140 +1,224 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getDatabase, ref, set, onValue, remove, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login | ImanzLY Portal</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        body {
+            background-color: #0f172a;
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            flex-direction: column;
+            color: white;
+            padding: 20px;
+        }
 
-// --- [ 1. CONFIG FIREBASE IKUT SCREENSHOT KAU ] ---
-const firebaseConfig = {
-    apiKey: "AIzaSyCz5cj9VBeiunHIvxSSZNKXLr9MDZcnut0",
-    authDomain: "detect-system-v3.firebaseapp.com",
-    databaseURL: "https://detect-system-v3-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "detect-system-v3",
-    storageBucket: "detect-system-v3.firebasestorage.app",
-    messagingSenderId: "18524075269",
-    appId: "1:18524075269:web:dae72d517d9bc5cc89736c"
-};
+        #number-grid {
+            display: grid; 
+            /* Kat handphone (default) buat 5 column */
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px; 
+            width: 100%;
+            max-width: 450px; 
+            margin-bottom: 20px;
+            transition: 0.3s;
+            max-height: 60vh;
+            overflow-y: auto;
+            padding: 10px;
+        }
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+        /* Kat laptop/PC buat 10 column balik */
+        @media (min-width: 768px) {
+            #number-grid {
+                grid-template-columns: repeat(10, 1fr);
+            }
+        }
 
-// --- [ 2. PEERJS SETUP (UNTUK CCTV) ] ---
-// ID Peer Admin kena statik supaya peserta senang cari
-const peer = new Peer('ADMIN_OPERATOR_IMANZ'); 
+        .block {
+            aspect-ratio: 1/1; /* Biar petak tepat */
+            border: 1px solid #1e293b;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 12px; cursor: pointer; color: #64748b; transition: 0.3s;
+            user-select: none;
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 8px;
+        }
+        .block:hover { color: #38bdf8; border-color: #38bdf8; background: #1e293b; }
 
-peer.on('open', (id) => {
-    console.log('Admin Peer ID is: ' + id);
-});
+        #login-section { display: none; opacity: 0; width: 100%; max-width: 400px; }
+        
+        .login-card {
+            background: #1e293b; padding: 2rem; border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            width: 100%; 
+            border: 1px solid #334155; text-align: center;
+        }
 
-// --- [ 3. FUNCTION CREATE ACCOUNT ] ---
-window.addParticipant = function() {
-    const nameInput = document.getElementById('pName');
-    const msg = document.getElementById('status-msg');
-    const name = nameInput.value.trim();
-    
-    if (name === "") return alert("Nama wajib isi!");
+        @media (max-width: 480px) {
+            .login-card { padding: 1.5rem; }
+            .login-card h2 { font-size: 1.5rem; }
+        }
 
-    // Generate ID (USER-1234) & Key (Rawak 5 Aksara)
-    const pID = "USER-" + Math.floor(1000 + Math.random() * 9000);
-    const pKey = Math.random().toString(36).substring(7).toUpperCase();
-    
-    // Hash key guna CryptoJS (pastikan script ada kat admin.html)
-    const hashedKey = CryptoJS.SHA256(pKey).toString();
+        .login-card h2 { color: #38bdf8; margin-bottom: 0.5rem; font-weight: 800; }
+        .login-card p { color: #94a3b8; font-size: 0.8rem; margin-bottom: 2rem; }
+        
+        .input-group { text-align: left; margin-bottom: 1.2rem; }
+        .input-group label { display: block; color: #cbd5e1; margin-bottom: 0.5rem; font-size: 0.8rem; font-weight: 600; }
+        .input-group input { 
+            width: 100%; padding: 0.8rem; border-radius: 10px; border: 1px solid #475569;
+            background: #0f172a; color: white; box-sizing: border-box; outline: none;
+            font-size: 16px; /* Elak auto-zoom kat iPhone */
+        }
 
-    // Simpan ke Firebase
-    set(ref(db, 'participants/' + pID), {
-        name: name,
-        pass: hashedKey, // Simpan yang dah di-hash
-        status: "OFFLINE",
-        created_at: serverTimestamp()
-    }).then(() => {
-        msg.innerHTML = `
-            <div class="bg-blue-500/10 border border-blue-500/50 p-3 rounded-lg mt-2">
-                <p class="text-blue-400 text-xs font-bold">✅ ACCOUNT CREATED!</p>
-                <code class="text-white text-[10px] block mt-1">ID: ${pID} | KEY: ${pKey}</code>
-                <p class="text-[9px] text-slate-500 mt-1">*Bagi ID & Key ni kat kawan kau.</p>
-            </div>`;
-        nameInput.value = ""; // Reset input box
-    }).catch((err) => {
-        console.error(err);
-        alert("Ralat Firebase! Pastikan 'Rules' di set kepada true.");
-    });
-}
+        .login-btn {
+            width: 100%; padding: 0.8rem; border: none; border-radius: 10px;
+            background: #38bdf8; color: #0f172a; font-weight: 800; cursor: pointer;
+            transition: 0.2s; text-transform: uppercase; letter-spacing: 1px;
+        }
+        .login-btn:hover { background: #7dd3fc; transform: translateY(-2px); }
 
-// --- [ 4. FUNCTION DELETE ACCOUNT ] ---
-window.deleteParticipant = function(id, name) {
-    if(confirm(`Padam akaun ${name}?`)) {
-        remove(ref(db, 'participants/' + id));
-    }
-}
+        #timer-msg { color: #f87171; font-weight: bold; margin-top: 10px; font-size: 14px; text-align: center; }
+        .locked-grid { pointer-events: none; opacity: 0.2; }
+    </style>
+</head>
+<body>
 
-// --- [ 5. MONITORING LIST (REAL-TIME) ] ---
-const monitorList = document.getElementById('monitor-list');
-const activeCount = document.getElementById('active-count');
+    <div id="number-grid"></div>
 
-onValue(ref(db, 'participants'), (snapshot) => {
-    monitorList.innerHTML = "";
-    let onlineCount = 0;
+    <div id="login-section">
+        <div class="login-card">
+            <h2>Admin Access</h2>
+            <p>Sila masukkan kelayakan verifikasi.</p>
+            <form id="adminLoginForm">
+                <div class="input-group">
+                    <label>Gmail Admin</label>
+                    <input type="email" id="email" placeholder="admin@imanzly.com" required>
+                </div>
+                <div class="input-group">
+                    <label>Password Verification</label>
+                    <input type="password" id="password" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="login-btn">MASUK DASHBOARD</button>
+            </form>
+            <div id="message" style="margin-top:15px; font-size: 13px; font-weight: bold;"></div>
+        </div>
+    </div>
 
-    if (snapshot.exists()) {
-        snapshot.forEach((child) => {
-            const id = child.key;
-            const data = child.val();
-            if (data.status === "ONLINE") onlineCount++;
+    <p id="timer-msg"></p>
 
-            const card = document.createElement('div');
-            card.className = "p-1"; // Padding celah grid
-            card.innerHTML = `
-                <div class="glass p-4 rounded-xl border-l-4 ${data.status === "ONLINE" ? 'border-blue-500 shadow-[0_0_10px_rgba(56,189,248,0.2)]' : 'border-slate-700'}">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <b class="text-white block">${data.name}</b>
-                            <code class="text-[10px] text-slate-500">${id}</code>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick="watchLive('${id}')" 
-                                class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded text-[10px] font-bold transition ${data.status === "ONLINE" ? '' : 'opacity-30 cursor-not-allowed'}"
-                                ${data.status === "ONLINE" ? '' : 'disabled'}>
-                                WATCH
-                            </button>
-                            <button onclick="deleteParticipant('${id}', '${data.name}')" 
-                                class="bg-red-500/20 hover:bg-red-500 text-red-500 hover:text-white px-3 py-1 rounded text-[10px] transition">
-                                DEL
-                            </button>
-                        </div>
-                    </div>
-                </div>`;
-            monitorList.appendChild(card);
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCz5cj9VBeiunHIvxSSZNKXLr9MDZcnut0",
+            authDomain: "detect-system-v3.firebaseapp.com",
+            databaseURL: "https://detect-system-v3-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "detect-system-v3",
+            storageBucket: "detect-system-v3.firebasestorage.app",
+            messagingSenderId: "18524075269",
+            appId: "1:18524075269:web:dae72d517d9bc5cc89736c"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let dbSecretCode = 12;
+        const grid = document.getElementById('number-grid');
+        const timerMsg = document.getElementById('timer-msg');
+
+        async function syncSettings() {
+            try {
+                const snapshot = await get(ref(db));
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    dbSecretCode = data.secret_pin || 12;
+                }
+            } catch (e) { console.error("Sync Error", e); }
+        }
+        syncSettings();
+
+        for (let i = 1; i <= 100; i++) {
+            const block = document.createElement('div');
+            block.className = 'block';
+            block.innerText = i;
+            block.onclick = () => {
+                if (i === parseInt(dbSecretCode)) {
+                    revealLogin();
+                } else {
+                    handleFail();
+                }
+            };
+            grid.appendChild(block);
+        }
+
+        const loginForm = document.getElementById('adminLoginForm');
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const emailIn = document.getElementById('email').value.trim();
+            const passIn = document.getElementById('password').value.trim();
+            const msg = document.getElementById('message');
+
+            msg.innerHTML = '<span style="color: #38bdf8;">Establishing Link...</span>';
+
+            try {
+                const snapshot = await get(ref(db));
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    if (emailIn === data.user && passIn === data.pass) {
+                        sessionStorage.setItem('admin_token', 'AUTHORIZED_IMANZ_2026');
+                        msg.innerHTML = '<span style="color: #4ade80;">ACCESS GRANTED</span>';
+                        setTimeout(() => { window.location.href = "dashboard.html"; }, 1000);
+                    } else {
+                        msg.innerHTML = '<span style="color: #f87171;">ACCESS DENIED: Wrong Credentials</span>';
+                    }
+                }
+            } catch (err) {
+                msg.innerHTML = '<span style="color: #f87171;">SYSTEM ERROR: Check Database</span>';
+            }
         });
-    } else {
-        monitorList.innerHTML = '<p class="text-slate-600 italic text-sm">Tiada isyarat peserta...</p>';
-    }
-    activeCount.innerText = onlineCount;
-});
 
-// --- [ 6. LIVE WATCH LOGIC ] ---
-window.watchLive = function(targetId) {
-    const modal = document.getElementById('cctv-modal');
-    modal.classList.remove('hidden');
-    modal.style.display = 'flex';
-    document.getElementById('target-id').innerText = "TARGET_STREAM: " + targetId;
-    
-    // Admin request stream dari peserta (PeerJS)
-    const call = peer.call(targetId, null); 
-    
-    call.on('stream', (remoteStream) => {
-        const videoElement = document.getElementById('remoteVideo');
-        videoElement.srcObject = remoteStream;
-    });
+        function handleFail() {
+            let count = (parseInt(localStorage.getItem('failCount')) || 0) + 1;
+            localStorage.setItem('failCount', count);
+            if (count >= 3) {
+                const wait = (count - 2) * 30;
+                localStorage.setItem('lockUntil', Date.now() + (wait * 1000));
+                startBan(wait);
+            }
+        }
 
-    call.on('error', (err) => {
-        console.error("Peer Error:", err);
-        alert("Gagal menyambung ke kamera peserta.");
-    });
-}
+        function startBan(s) {
+            grid.classList.add('locked-grid');
+            let c = s;
+            const itv = setInterval(() => {
+                timerMsg.innerText = `SISTEM TERKUNCI! CUBA LAGI: ${c}s`;
+                if (c-- <= 0) {
+                    clearInterval(itv);
+                    timerMsg.innerText = "";
+                    grid.classList.remove('locked-grid');
+                    localStorage.removeItem('lockUntil');
+                    localStorage.setItem('failCount', 0);
+                }
+            }, 1000);
+        }
 
-window.closeVideo = function() {
-    document.getElementById('cctv-modal').style.display = 'none';
-    const videoElement = document.getElementById('remoteVideo');
-    if (videoElement.srcObject) {
-        videoElement.srcObject.getTracks().forEach(track => track.stop());
-        videoElement.srcObject = null;
-    }
-}
+        function revealLogin() {
+            gsap.to("#number-grid", { opacity: 0, scale: 0.8, duration: 0.4, onComplete: () => {
+                grid.style.display = "none";
+                const sec = document.getElementById('login-section');
+                sec.style.display = "block";
+                gsap.to(sec, { opacity: 1, y: 0, duration: 0.6 });
+            }});
+        }
+
+        const lockUntil = localStorage.getItem('lockUntil');
+        if (lockUntil && Date.now() < lockUntil) {
+            startBan(Math.ceil((lockUntil - Date.now()) / 1000));
+        }
+    </script>
+</body>
+</html>
