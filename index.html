@@ -26,18 +26,19 @@
         margin: 0 auto;
     }
 
-    #peserta-dashboard {
-        display: none; 
-        position: fixed; 
-        top: 0; left: 0; 
-        width: 100%; height: 100vh; 
-        background: #060b14; 
-        z-index: 10000; 
-        flex-direction: column; 
-        align-items: center; 
-        justify-content: center; 
-        opacity: 0;
-    }
+    /* CARI LINE NI DALAM INDEX.HTML KAU & TAMBAH/UPDATE */
+        #peserta-dashboard {
+            display: none; 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100%; height: 100vh; 
+            background: #060b14 !important; /* Tambah !important supaya tak hitam */
+            z-index: 99999 !important;      /* Tingkatkan z-index paling tinggi */
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            opacity: 0;
+        }
 
     .dash-card {
         text-align: center; 
